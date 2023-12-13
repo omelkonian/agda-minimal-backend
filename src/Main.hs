@@ -9,7 +9,7 @@ import Control.DeepSeq ( NFData(..) )
 import System.Console.GetOpt ( OptDescr(Option), ArgDescr(ReqArg) )
 
 import Data.Version ( showVersion )
-import Paths_agda2min ( version )
+import Paths_agda2rust ( version )
 
 import Agda.Syntax.Common.Pretty ( prettyShow )
 import Agda.Syntax.Internal ( qnameName, qnameModule )
@@ -44,7 +44,7 @@ type CompiledDef = String
 
 backend :: Backend' Options Options ModuleEnv ModuleRes CompiledDef
 backend = Backend'
-  { backendName           = "agda2??"
+  { backendName           = "agda2rust"
   , backendVersion        = Just (showVersion version)
   , options               = defaultOptions
   , commandLineFlags      =
@@ -70,7 +70,7 @@ moduleSetup _ _ m _ = do
 compile :: Options -> ModuleEnv -> IsMain -> Definition -> TCM CompiledDef
 compile opts tlm _ Defn{..}
   = withCurrentModule (qnameModule defName)
-  $ getUniqueCompilerPragma "AGDA2??" defName >>= \case
+  $ getUniqueCompilerPragma "AGDA2RUST" defName >>= \case
       Nothing -> return []
       Just (CompilerPragma _ _) ->
         return $ prettyShow (qnameName defName) <> " = " <> prettyShow theDef
@@ -79,8 +79,8 @@ writeModule :: Options -> ModuleEnv -> IsMain -> TopLevelModuleName -> [Compiled
             -> TCM ModuleRes
 writeModule opts _ _ m cdefs = do
   outDir <- compileDir
-  liftIO $ putStrLn (moduleNameToFileName m "txt")
-  let outFile = fromMaybe outDir (optOutDir opts) <> "/" <> moduleNameToFileName m "txt"
+  liftIO $ putStrLn (moduleNameToFileName m "rs")
+  let outFile = fromMaybe outDir (optOutDir opts) <> "/" <> moduleNameToFileName m "rs"
   unless (all null cdefs) $ liftIO
     $ writeFile outFile
     $ "*** module " <> prettyShow m <> " ***\n" <> unlines cdefs
