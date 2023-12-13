@@ -19,7 +19,7 @@ source-repository head
 executable agda2rust
   hs-source-dirs:      src
   main-is:             Main.hs
-  other-modules:       Paths_agda2rust
+  other-modules:       Agda.Compiler.Rust.Backend Paths_agda2rust
   autogen-modules:     Paths_agda2rust
   build-depends:       base >= 4.10 && < 4.20,
                        Agda >= 2.6.4 && < 2.6.5,
