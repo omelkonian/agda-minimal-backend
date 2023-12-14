@@ -1,5 +1,8 @@
 {-# LANGUAGE LambdaCase, RecordWildCards #-}
-module Agda.Compiler.Rust.Backend ( runRustBackend ) where
+module Agda.Compiler.Rust.Backend (
+  runRustBackend,
+  backend,
+  defaultOptions ) where
 
 import Data.Maybe ( fromMaybe )
 import Control.Monad ( unless )
@@ -52,30 +55,29 @@ backend = Backend'
       [ Option ['o'] ["out-dir"] (ReqArg outdirOpt "DIR")
         "Write output files to DIR. (default: project root)"
       ]
-  , isEnabled             = \ _ -> True
+  , isEnabled             = const True
   , preCompile            = return
   , postCompile           = \ _ _ _ -> return ()
   , preModule             = moduleSetup
   , postModule            = writeModule
   , compileDef            = compile
   , scopeCheckingSuffices = False
-  , mayEraseType          = \ _ -> return True
+  , mayEraseType          = const $ return True
   }
 
 moduleSetup :: Options -> IsMain -> TopLevelModuleName -> Maybe FilePath
             -> TCM (Recompile ModuleEnv ModuleRes)
-moduleSetup _ _ m _ = do
+moduleSetup _ _ _ _ = do
   setScope . iInsideScope =<< curIF
   return $ Recompile ()
 
 compile :: Options -> ModuleEnv -> IsMain -> Definition -> TCM CompiledDef
-compile opts tlm _ Defn{..}
+compile _ _ _ Defn{..}
   = withCurrentModule (qnameModule defName)
   $ getUniqueCompilerPragma "AGDA2RUST" defName >>= \case
       Nothing -> return []
       Just (CompilerPragma _ _) ->
         return $ prettyShow (qnameName defName) <> " = " <> prettyShow theDef
-
 
 writeModule :: Options -> ModuleEnv -> IsMain -> TopLevelModuleName -> [CompiledDef]
             -> TCM ModuleRes
